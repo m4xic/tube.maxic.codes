@@ -2,11 +2,17 @@
 
 This is a living document listing each of the goals I want to achieve with this project
 
-## "What's the status of the Tube?"
+## "What's the status of the Tube?" `☑️ /v1/status`
 
 > What's the status of the Tube?
 >
 > *The Circle line has major delays and the Waterloo & City line is closed for the night. There's good service everywhere else.*
+
+## "What's the status of the <service>?"
+
+> What's the status of the Hammersmith & City line?
+>
+> *The Hammersmith & City line has good service right now.*
 
 Inform the user of any lines with minor/major delays or suspensions.
 
