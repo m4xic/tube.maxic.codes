@@ -44,7 +44,7 @@ def station_timetable(service, station_code):
     else:
         outbound_message = f"The next {outbound['lineName']} at {outbound['platformName']} towards {outbound['destinationName'].replace(' Station', '')} "
         if outbound['timeToStation'] < 60: outbound_message += "is arriving now."
-        else: outbound_message += f"arrives in around {outbound['timeToStation'] // 60} minutes."
+        else: outbound_message += f"arrives in around {outbound['timeToStation'] // 60} minute{'s' if (outbound['timeToStation'] // 60) > 1 else ''}."
     print(inbound_message)
     print(outbound_message)
     return json.dumps({'inbound': inbound_message, 'outbound': outbound_message})
