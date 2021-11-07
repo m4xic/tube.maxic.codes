@@ -180,6 +180,24 @@ def next_service_station(service, station):
     if result == []: return json.dumps({'speech': "There are no matching services at the moment."})
     return result
 
+@app.route('/v1/location_fetch/<lat>/<lon>/<radius>', methods=['POST'])
+def location_fetch(lat, lon, radius):
+    if 'key' not in request.form:
+        return "Missing API key", 401
+    
+    if request.form.get('key') != os.getenv('MC_API_KEY'):
+        return "Invalid API key", 403
+
+    location_results = requests.get(f'https://api.tfl.gov.uk/StopPoint/?lat={lat}&lon={lon}&stopTypes=NaptanMetroStation,NaptanRailStation&radius={radius}').json()
+
+    output = {}
+    for location in location_results['stopPoints']:
+        output[location['name']] = output['id']
+    
+    return json.dumps(output)
+
+
+
 @app.route('/v1/next_code/<service>/<station>', methods=['POST'])
 def next_service_code(service, station_code):
     if 'key' not in request.form:
@@ -187,7 +205,7 @@ def next_service_code(service, station_code):
     
     if request.form.get('key') != os.getenv('MC_API_KEY'):
         return "Invalid API key", 403
-        
+
     result = station_timetable(service, station_code)
     if result == []: return json.dumps({'speech': "There are no matching services at the moment."})
     return result
