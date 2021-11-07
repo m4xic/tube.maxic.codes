@@ -137,7 +137,7 @@ def service_status(service):
 @app.route('/v1/next/<service>/<station>', methods=['GET'])
 def next_service_station(service, station):
     search_results = requests.get(f'https://api.tfl.gov.uk/StopPoint/Search/{station}?modes=tube,overground,dlr,tflrail&includeHubs=false').json()
-    if search_results['total'] == 0: return json.dumps({'error': True})
+    if search_results['total'] == 0: return json.dumps({'speech': f"There were no matching stations ({station})"})
     station_codes = []
     for j in range(0, search_results['total']):
         station_code = search_results['matches'][j]['id']
