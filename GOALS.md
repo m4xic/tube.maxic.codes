@@ -8,7 +8,7 @@ This is a living document listing each of the goals I want to achieve with this 
 >
 > *The Circle line has major delays and the Waterloo & City line is closed for the night. There's good service everywhere else.*
 
-## "What's the status of the <service>?"
+## "What's the status of the *service*?" `☑️ /v1/status/<service>`
 
 > What's the status of the Hammersmith & City line?
 >
@@ -16,7 +16,7 @@ This is a living document listing each of the goals I want to achieve with this 
 
 Inform the user of any lines with minor/major delays or suspensions.
 
-## "When's the next <service> from <station> (towards <station>)?"
+## "When's the next *service* from *station* (towards *station*)?"
 
 > When's the next DLR from Mudchute?
 >
@@ -28,7 +28,7 @@ Inform the user of any lines with minor/major delays or suspensions.
 
 Inform the user when the next two services are from each platform at their specified station
 
-## "When's the next <service>?"
+## "When's the next *service*?"
 
 > When's the next DLR?
 >
