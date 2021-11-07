@@ -1,10 +1,8 @@
 import flask
-from flask import request, send_file
-import tweepy
+from flask import request
 import dotenv
 import os
 from sys import exit
-import re
 import requests
 import json
 import random
