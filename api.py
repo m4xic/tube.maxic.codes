@@ -198,7 +198,7 @@ def location_fetch(lat, lon, radius):
 
 
 
-@app.route('/v1/next_code/<service>/<station>', methods=['POST'])
+@app.route('/v1/next_code/<service>/<station_code>', methods=['POST'])
 def next_service_code(service, station_code):
     if 'key' not in request.form:
         return "Missing API key", 401
