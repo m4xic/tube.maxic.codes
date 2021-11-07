@@ -166,12 +166,29 @@ def service_status(service):
 
 @app.route('/v1/next/<service>/<station>', methods=['POST'])
 def next_service_station(service, station):
+    if 'key' not in request.form:
+        return "Missing API key", 401
+    
+    if request.form.get('key') != os.getenv('MC_API_KEY'):
+        return "Invalid API key", 403
     search_results = requests.get(f'https://api.tfl.gov.uk/StopPoint/Search/{station}?modes=tube,overground,dlr,tflrail&includeHubs=false').json()
     if search_results['total'] == 0: return json.dumps({'speech': f"There were no matching stations ({station})"})
     for j in range(0, search_results['total']):
         station_code = search_results['matches'][j]['id']
         result = station_timetable(service, station_code)
         if result != []: break
+    if result == []: return json.dumps({'speech': "There are no matching services at the moment."})
+    return result
+
+@app.route('/v1/next_code/<service>/<station>', methods=['POST'])
+def next_service_code(service, station_code):
+    if 'key' not in request.form:
+        return "Missing API key", 401
+    
+    if request.form.get('key') != os.getenv('MC_API_KEY'):
+        return "Invalid API key", 403
+        
+    result = station_timetable(service, station_code)
     if result == []: return json.dumps({'speech': "There are no matching services at the moment."})
     return result
         
