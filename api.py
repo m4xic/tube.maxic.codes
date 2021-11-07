@@ -192,7 +192,7 @@ def location_fetch(lat, lon, radius):
 
     output = {}
     for location in location_results['stopPoints']:
-        output[location['name']] = location['id']
+        output[location['commonName']] = location['id']
     
     return json.dumps(output)
 
