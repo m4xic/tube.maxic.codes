@@ -19,6 +19,36 @@ app.config["DEBUG"] = True
 def home():
     return "Invalid method"
 
+def station_timetable(service, station_code):
+    timetable = requests.get(f'https://api.tfl.gov.uk/Line/{service}/Arrivals/{station_code}').json()
+    if timetable == []:
+        return []
+    inbound, outbound = None, None
+    for record in timetable:
+        if record['direction'] == 'inbound':
+            if inbound == None or datetime.fromisoformat(record['expectedArrival'][:-1]) < datetime.fromisoformat(inbound['expectedArrival'][:-1]):
+                inbound = record
+        else:
+            if outbound == None or datetime.fromisoformat(record['expectedArrival'][:-1]) < datetime.fromisoformat(outbound['expectedArrival'][:-1]):
+                outbound = record
+
+    if inbound == None and outbound == None: return json.dumps({'speech': "There are no matching services at the moment."})
+
+    if inbound == None: inbound_message = ''
+    else:
+        inbound_message = f"The next {inbound['lineName']} at {inbound['stationName'].replace(' Station', '')} {inbound['platformName']} towards {inbound['destinationName'].replace(' Station', '')} "
+        if inbound['timeToStation'] < 60: inbound_message += "is arriving now."
+        else: inbound_message += f"arrives in around {inbound['timeToStation'] // 60} minutes."
+
+    if outbound == None: outbound_message = ''
+    else:
+        outbound_message = f"The next {outbound['lineName']} at {outbound['stationName'].replace(' Station', '')} {outbound['platformName']} towards {outbound['destinationName'].replace(' Station', '')} "
+        if outbound['timeToStation'] < 60: outbound_message += "is arriving now."
+        else: outbound_message += f"arrives in around {outbound['timeToStation'] // 60} minutes."
+    print(inbound_message)
+    print(outbound_message)
+    return json.dumps({'inbound': inbound_message, 'outbound': outbound_message})
+
 @app.route('/v1/status', methods=['POST'])
 def status():
     if 'key' not in request.form:
@@ -122,11 +152,11 @@ def service_status(service):
             if alert_types[alert_name][1] > 0:
                 alert_summary.append(f"{alert_types[alert_name][1]} {alert_types[alert_name][0]}")
         if len(alert_summary) > 1:
-            return json.dumps({'speech': f"There are {', '.join(alert_summary[:-1]) + ', and ' + alert_summary[-1]} alerts for {service_json['name']} services."})
+            return json.dumps({'speech': f"I can see {', '.join(alert_summary[:-1]) + ', and ' + alert_summary[-1]} alerts for {service_json['name']} services."})
         elif alert_summary[0][0] == "1":
             return json.dumps({'speech': f"There is {alert_summary[-1]} alert for {service_json['name']} services."})
         else:
-            return json.dumps({'speech': f"There are {alert_summary[-1]} alerts for {service_json['name']} services."})
+            return json.dumps({'speech': f"I can see {alert_summary[-1]} alerts for {service_json['name']} services."})
     elif service_json['lineStatuses'][0]['statusSeverityDescription'] == "Good Service":
         return json.dumps({'speech': random.choice([f"{service_json['name']} services are currently running normally.", f"There are currently no alerts for {service_json['name']} services."])})
     else:
@@ -134,42 +164,16 @@ def service_status(service):
 
         return json.dumps({'speech': f"There is a {alert_types[service_json['lineStatuses'][0]['statusSeverityDescription']]} alert for {service_json['name']} services.", 'reason': service_json['lineStatuses'][0]['reason']})
 
-@app.route('/v1/next/<service>/<station>', methods=['GET'])
+@app.route('/v1/next/<service>/<station>', methods=['POST'])
 def next_service_station(service, station):
     search_results = requests.get(f'https://api.tfl.gov.uk/StopPoint/Search/{station}?modes=tube,overground,dlr,tflrail&includeHubs=false').json()
     if search_results['total'] == 0: return json.dumps({'speech': f"There were no matching stations ({station})"})
-    station_codes = []
     for j in range(0, search_results['total']):
         station_code = search_results['matches'][j]['id']
-        timetable = requests.get(f'https://api.tfl.gov.uk/Line/{service}/Arrivals/{station_code}').json()
-        if timetable == [] and j == search_results['total']-1:
-            return json.dumps({'speech': "There are no matching services at the moment."})
-        if timetable == []: 
-            continue
-        inbound, outbound = None, None
-        for record in timetable:
-            if record['direction'] == 'inbound':
-                if inbound == None or datetime.fromisoformat(record['expectedArrival'][:-1]) < datetime.fromisoformat(inbound['expectedArrival'][:-1]):
-                    inbound = record
-            else:
-                if outbound == None or datetime.fromisoformat(record['expectedArrival'][:-1]) < datetime.fromisoformat(outbound['expectedArrival'][:-1]):
-                    outbound = record
-
-        if inbound == None and outbound == None: return json.dumps({'speech': "There are no matching services at the moment."})
-
-        if inbound == None: inbound_message = ''
-        else:
-            inbound_message = f"The next {inbound['lineName']} at {inbound['stationName'].replace(' Station', '')} {inbound['platformName']} towards {inbound['destinationName'].replace(' Station', '')} "
-            if inbound['timeToStation'] < 60: inbound_message += "is arriving now."
-            else: inbound_message += f"arrives in around {inbound['timeToStation'] // 60} minutes."
-
-        if outbound == None: outbound_message = ''
-        else:
-            outbound_message = f"The next {outbound['lineName']} at {outbound['stationName'].replace(' Station', '')} {outbound['platformName']} towards {outbound['destinationName'].replace(' Station', '')} "
-            if outbound['timeToStation'] < 60: outbound_message += "is arriving now."
-            else: outbound_message += f"arrives in around {outbound['timeToStation'] // 60} minutes."
-        print(inbound_message)
-        print(outbound_message)
-        return json.dumps({'inbound': inbound_message, 'outbound': outbound_message})
+        result = station_timetable(service, station_code)
+        if result != []: break
+    if result == []: return json.dumps({'speech': "There are no matching services at the moment."})
+    return result
+        
 
 app.run(host="0.0.0.0", port=5050)
