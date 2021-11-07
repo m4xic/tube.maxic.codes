@@ -16,7 +16,7 @@ This is a living document listing each of the goals I want to achieve with this 
 
 Inform the user of any lines with minor/major delays or suspensions.
 
-## "When's the next *service* from *station* (towards *station*)?"
+## "When's the next *service* from *station* (towards *station*)?" `☑️ /v1/next/<service>/<station>`
 
 > When's the next DLR from Mudchute?
 >
